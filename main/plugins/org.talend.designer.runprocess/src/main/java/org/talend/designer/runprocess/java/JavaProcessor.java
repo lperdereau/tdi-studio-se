@@ -157,6 +157,7 @@ import org.talend.repository.ProjectManager;
 import org.talend.repository.constants.BuildJobConstants;
 import org.talend.repository.utils.EmfModelUtils;
 import org.talend.repository.utils.EsbConfigUtils;
+import org.talend.utils.StudioKeysFileCheck;
 import org.talend.utils.io.FilesUtils;
 
 /**
@@ -1653,6 +1654,10 @@ public class JavaProcessor extends AbstractJavaProcessor implements IJavaBreakpo
             if (!encodingSetInjob) {
                 asList.add(encodingFromIni);
             }
+        }
+        String encryptionFilePath = System.getProperty(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_SYS_PROP);
+        if (StringUtils.isNotEmpty(encryptionFilePath)) {
+            asList.add(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_SYS_PROP_PARAM + "=" + encryptionFilePath);
         }
         // add args if using JMX.
         RunProcessContext runProcessContext = RunProcessPlugin.getDefault().getRunProcessContextManager().getActiveContext();
