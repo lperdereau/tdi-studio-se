@@ -389,16 +389,26 @@ public abstract class Processor implements IProcessor, IEclipseProcessor, Talend
     protected String[] addEncryptionFilePathParameter(String[] cmds) {
         String encryptionFilePath = System.getProperty(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_SYS_PROP);
         File encryptionFile = new File(encryptionFilePath);
-        List<String> cmdList = new ArrayList<String>();
-        int cpIndex = ArrayUtils.indexOf(cmds, JavaUtils.JAVA_CP);
-        for (int i = 0; i < cpIndex; i++) {
-            cmdList.add(cmds[i]);
+        boolean isContained = false;
+        for (String cmd : cmds) {
+            if (cmd != null && cmd.trim().startsWith(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_JVM_PARAM)) {
+                isContained = true;
+                break;
+            }
         }
-        cmdList.add(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_JVM_PARAM + "=" + encryptionFile.toURI().getPath());
-        for (int i = cpIndex; i < cmds.length; i++) {
-            cmdList.add(cmds[i]);
+        if (!isContained) {
+            List<String> cmdList = new ArrayList<String>();
+            int cpIndex = ArrayUtils.indexOf(cmds, JavaUtils.JAVA_CP);
+            for (int i = 0; i < cpIndex; i++) {
+                cmdList.add(cmds[i]);
+            }
+            cmdList.add(StudioKeysFileCheck.ENCRYPTION_KEY_FILE_JVM_PARAM + "=" + encryptionFile.toURI().getPath());
+            for (int i = cpIndex; i < cmds.length; i++) {
+                cmdList.add(cmds[i]);
+            }
+            return cmdList.toArray(new String[0]);
         }
-        return cmdList.toArray(new String[0]);
+        return cmds;
     }
 
     /**
