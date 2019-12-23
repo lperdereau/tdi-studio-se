@@ -227,6 +227,7 @@ import org.talend.designer.core.ui.views.jobsettings.JobSettings;
 import org.talend.designer.core.ui.views.problems.Problems;
 import org.talend.designer.core.ui.views.properties.ComponentSettingsView;
 import org.talend.designer.core.utils.ConnectionUtil;
+import org.talend.designer.core.utils.HelpUtil;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.repository.model.RepositoryConstants;
 import org.talend.repository.ui.views.IRepositoryView;
@@ -2181,13 +2182,18 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                             }
                             if (node != null) {
 
-                                String helpLink = (String) node.getPropertyValue(EParameterName.HELP.getName());
-                                String requiredHelpLink = ((Process) node.getProcess()).getBaseHelpLink()
-                                        + node.getComponent().getName();
-                                if (helpLink == null || "".equals(helpLink) || !requiredHelpLink.equals(helpLink)) {
-                                    helpLink = ((Process) node.getProcess()).getBaseHelpLink() + node.getComponent().getName();
+                                if (HelpUtil.isUseOffLineHelp()) {
+                                    String helpLink = (String) node.getPropertyValue(EParameterName.HELP.getName());
+                                    String requiredHelpLink = ((Process) node.getProcess()).getBaseHelpLink()
+                                            + node.getComponent().getName();
+                                    if (helpLink == null || "".equals(helpLink) || !requiredHelpLink.equals(helpLink)) {
+                                        helpLink = ((Process) node.getProcess()).getBaseHelpLink()
+                                                + node.getComponent().getName();
+                                    }
+                                    PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpLink);
+                                } else {
+                                    HelpUtil.openLineHelp(node.getComponent().getName());
                                 }
-                                PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpLink);
                             }
                         }
                     }

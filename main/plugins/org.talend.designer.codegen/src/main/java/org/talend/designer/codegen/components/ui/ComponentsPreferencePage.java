@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
@@ -52,6 +53,8 @@ import org.talend.designer.codegen.i18n.Messages;
 import org.talend.designer.core.DesignerPlugin;
 import org.talend.designer.core.assist.TalendEditorComponentCreationUtil;
 import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
+import org.talend.designer.core.utils.HelpUtil;
+import org.talend.updates.runtime.ui.ShowWizardHandler;
 
 /**
  * This class represents a preference page that is contributed to the Preferences dialog. By subclassing
@@ -70,6 +73,8 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
     private CheckBoxFieldEditor enableComponentAssistCheckBoxField;
 
     private DirectoryFieldEditor filePathTemp;
+
+    private CheckBoxFieldEditor enableOnLineHelpField;
 
     private final String dataViewer = "Data Viewer"; //$NON-NLS-1$
 
@@ -209,6 +214,16 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
         return group;
     }
 
+    protected Composite createForHelpType(Composite parent) {
+        Group group = createGroup(parent);
+        group.setText(Messages.getString("ComponentsPreferencePage.grpHelp"));
+        Composite composite = createComposite(group);
+        addHelpTypeFiled(composite);
+        GridLayout layout = createLayout();
+        composite.setLayout(layout);
+        return group;
+    }
+
     protected Group createGroup(Composite parent) {
         Group group = new Group(parent, SWT.NONE);
         GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
@@ -271,6 +286,27 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
         addField(enableComponentAssistCheckBoxField);
     }
 
+    protected void addHelpTypeFiled(Composite composite) {
+        enableOnLineHelpField = new CheckBoxFieldEditor(TalendDesignerPrefConstants.HELP_ONLINE,
+                Messages.getString("ComponentsPreferencePage.enableOnLineHelp"), composite) {
+
+            @Override
+            protected void doLoad() {
+                boolean value = getPreferenceStore().getBoolean(getPreferenceName());
+                if (!value && !HelpUtil.isHelpInstalled()) {
+                    Button checkBox = getButton();
+                    if (checkBox != null) {
+                        checkBox.setSelection(true);
+                        super.doStore();
+                    }
+                }
+                super.doLoad();
+            }
+        }; // $NON-NLS-1$
+
+        addField(enableOnLineHelpField);
+    }
+
     @Override
     public void createFieldEditors() {
         final Composite parent = getFieldEditorParent();
@@ -316,6 +352,9 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             createForJoblet(parent);
         }
         createForComponentAssist(parent);
+        if (PluginChecker.isTIS()) {
+            createForHelpType(parent);
+        }
         parent.pack();
     }
 
@@ -472,6 +511,21 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             this.oldPath = newPath;
 
         }
+
+        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !HelpUtil.isHelpInstalled()) {
+            if (MessageDialog.openConfirm(getShell(), Messages.getString("ComponentsPreferencePage.titleInstallHelp"),
+                    Messages.getString("ComponentsPreferencePage.msgInstallHelp"))) {
+                flag = installHelpFeature();
+            } else {
+                flag = false;
+            }
+        }
         return flag;
+    }
+
+    private boolean installHelpFeature() {
+        new ShowWizardHandler().showUpdateWizard(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                null);
+        return true;
     }
 }
