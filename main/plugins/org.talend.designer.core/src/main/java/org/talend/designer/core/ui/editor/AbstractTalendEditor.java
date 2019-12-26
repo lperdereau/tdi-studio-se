@@ -2182,7 +2182,9 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                             }
                             if (node != null) {
 
-                                if (HelpUtil.isUseOffLineHelp()) {
+                                if (HelpUtil.isUseOnLineHelp()) {
+                                    HelpUtil.openLineHelp(node.getComponent().getName());
+                                } else {
                                     String helpLink = (String) node.getPropertyValue(EParameterName.HELP.getName());
                                     String requiredHelpLink = ((Process) node.getProcess()).getBaseHelpLink()
                                             + node.getComponent().getName();
@@ -2191,8 +2193,6 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                                                 + node.getComponent().getName();
                                     }
                                     PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpLink);
-                                } else {
-                                    HelpUtil.openLineHelp(node.getComponent().getName());
                                 }
                             }
                         }

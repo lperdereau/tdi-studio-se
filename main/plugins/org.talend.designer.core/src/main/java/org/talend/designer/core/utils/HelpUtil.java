@@ -35,16 +35,16 @@ public class HelpUtil {
 
     private static String HELP_LANGUAGE = Locale.FRENCH.equals(Locale.getDefault().getLanguage()) ? "fr" : "en"; //$NON-NLS-1$ //$NON-NLS-2$
 
-    public static boolean isUseOffLineHelp() {
+    public static boolean isUseOnLineHelp() {
         if (Boolean.parseBoolean(System.getProperty(JVM_PARAM_ONLINE_HELP_ENABLE, "false"))) { //$NON-NLS-1$
-            return false;
+            return true;
         }
         boolean isUseOnLineHelpInPre = DesignerPlugin.getDefault().getPreferenceStore()
                 .getBoolean(TalendDesignerPrefConstants.HELP_ONLINE);
-        if (!isHelpInstalled() || !isUseOnLineHelpInPre) {
-            return true;
+        if (isHelpInstalled() && !isUseOnLineHelpInPre) {
+            return false;
         }
-        return false;
+        return true;
     }
 
     public static String calOnLineHelpURL(String componentName) {
