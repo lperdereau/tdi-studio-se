@@ -292,16 +292,35 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
 
             @Override
             protected void doLoad() {
-                boolean value = getPreferenceStore().getBoolean(getPreferenceName());
-                if (!value && !HelpUtil.isHelpInstalled()) {
-                    Button checkBox = getButton();
-                    if (checkBox != null) {
+                boolean value = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
+                Button checkBox = getButton();
+                if (checkBox != null) {
+                    if (!value && !HelpUtil.isHelpInstalled()) {
                         checkBox.setSelection(true);
-                        super.doStore();
+                        doStore();
+                    } else {
+                        checkBox.setSelection(value);
                     }
                 }
-                super.doLoad();
             }
+
+            @Override
+            protected void doStore() {
+                Button checkBox = getButton();
+                if (checkBox != null) {
+                    DesignerPlugin.getDefault().getPreferenceStore().setValue(getPreferenceName(), checkBox.getSelection());
+                }
+
+            }
+
+            @Override
+            protected void doLoadDefault() {
+                Button checkBox = getButton();
+                if (checkBox != null) {
+                    checkBox.setSelection(true);
+                }
+            }
+
         }; // $NON-NLS-1$
 
         addField(enableOnLineHelpField);
@@ -352,7 +371,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             createForJoblet(parent);
         }
         createForComponentAssist(parent);
-        if (PluginChecker.isTIS()) {
+        if (HelpUtil.isEnabledOnLineHelp()) {
             createForHelpType(parent);
         }
         parent.pack();
