@@ -29,7 +29,7 @@ public class HelpUtil {
 
     private static String INTERNAL_VERSION = VersionUtils.getInternalVersion();
 
-    private static boolean IS_RELEASE_VERSION = INTERNAL_VERSION.indexOf("-") == 0; //$NON-NLS-1$
+    private static boolean IS_RELEASE_VERSION = INTERNAL_VERSION.indexOf("-") < 0; //$NON-NLS-1$
 
     private static String PRODUCT_BASE_VERSION = INTERNAL_VERSION.substring(0, 3);
 
