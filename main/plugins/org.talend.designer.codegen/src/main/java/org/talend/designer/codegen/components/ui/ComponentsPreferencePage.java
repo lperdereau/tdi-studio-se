@@ -287,19 +287,19 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
     }
 
     protected void addHelpTypeFiled(Composite composite) {
-        enableOnLineHelpField = new CheckBoxFieldEditor(TalendDesignerPrefConstants.HELP_ONLINE,
+        enableOnLineHelpField = new CheckBoxFieldEditor(TalendDesignerPrefConstants.HELP_OFFLINE,
                 Messages.getString("ComponentsPreferencePage.enableOnLineHelp"), composite) {
 
             @Override
             protected void doLoad() {
-                boolean value = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
+                boolean isOffLine = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
                 Button checkBox = getButton();
                 if (checkBox != null) {
-                    if (!value && !HelpUtil.isHelpInstalled()) {
+                    if (isOffLine && !HelpUtil.isHelpInstalled()) {
                         checkBox.setSelection(true);
                         doStore();
                     } else {
-                        checkBox.setSelection(value);
+                        checkBox.setSelection(!isOffLine);
                     }
                 }
             }
@@ -308,7 +308,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             protected void doStore() {
                 Button checkBox = getButton();
                 if (checkBox != null) {
-                    DesignerPlugin.getDefault().getPreferenceStore().setValue(getPreferenceName(), checkBox.getSelection());
+                    DesignerPlugin.getDefault().getPreferenceStore().setValue(getPreferenceName(), !checkBox.getSelection());
                 }
 
             }

@@ -35,6 +35,8 @@ public class HelpUtil {
 
     private static String HELP_LANGUAGE = Locale.FRENCH.equals(Locale.getDefault().getLanguage()) ? "fr" : "en"; //$NON-NLS-1$ //$NON-NLS-2$
 
+    private static Boolean IS_HELP_INSTALLED = null;
+
     public static boolean isEnabledOnLineHelp() {
         return Boolean.parseBoolean(System.getProperty(JVM_PARAM_ONLINE_HELP_ENABLE, "false"));
     }
@@ -43,9 +45,9 @@ public class HelpUtil {
         if (!isEnabledOnLineHelp()) {
             return false;
         }
-        boolean isUseOnLineHelpInPre = DesignerPlugin.getDefault().getPreferenceStore()
-                .getBoolean(TalendDesignerPrefConstants.HELP_ONLINE);
-        if (isHelpInstalled() && !isUseOnLineHelpInPre) {
+        boolean isOffLineHelpInPre = DesignerPlugin.getDefault().getPreferenceStore()
+                .getBoolean(TalendDesignerPrefConstants.HELP_OFFLINE);
+        if (isHelpInstalled() && isOffLineHelpInPre) {
             return false;
         }
         return true;
@@ -75,9 +77,20 @@ public class HelpUtil {
     }
 
     public static boolean isHelpInstalled() {
-        if (PluginChecker.isPluginLoaded("org.talend.help")) { //$NON-NLS-1$
-            return true;
+        if (IS_HELP_INSTALLED == null) {
+            IS_HELP_INSTALLED = true;
+            if (!PluginChecker.isPluginLoaded(PluginChecker.HELP_DI_EE_PLUGIN_ID)) {
+                IS_HELP_INSTALLED = false;
+            }
+            if (IS_HELP_INSTALLED && PluginChecker.isPluginLoaded(PluginChecker.ESBEE_PLUGIN_ID)
+                    && !PluginChecker.isPluginLoaded(PluginChecker.HELP_ESB_PLUGIN_ID)) {
+                IS_HELP_INSTALLED = false;
+            }
+            if (IS_HELP_INSTALLED && PluginChecker.isPluginLoaded(PluginChecker.BDEE_PLUGIN_ID)
+                    && !PluginChecker.isPluginLoaded(PluginChecker.HELP_BD_PLUGIN_ID)) {
+                IS_HELP_INSTALLED = false;
+            }
         }
-        return false;
+        return IS_HELP_INSTALLED;
     }
 }
