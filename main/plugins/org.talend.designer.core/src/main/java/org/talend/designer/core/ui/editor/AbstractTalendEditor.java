@@ -2202,7 +2202,7 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                         if (helpLink == null || "".equals(helpLink) || !requiredHelpLink.equals(helpLink)) {
                             helpLink = ((Process) node.getProcess()).getBaseHelpLink() + node.getComponent().getName();
                         }
-                        PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpLink);
+                        HelpUtil.displayHelp(helpLink);
                     }
                 }
             }
