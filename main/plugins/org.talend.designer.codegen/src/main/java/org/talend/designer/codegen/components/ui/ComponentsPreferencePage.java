@@ -14,6 +14,8 @@ package org.talend.designer.codegen.components.ui;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -54,6 +56,10 @@ import org.talend.designer.core.DesignerPlugin;
 import org.talend.designer.core.assist.TalendEditorComponentCreationUtil;
 import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
 import org.talend.designer.core.utils.HelpUtil;
+import org.talend.updates.runtime.InstallFeatureObserver;
+import org.talend.updates.runtime.engine.ExtraFeaturesUpdatesFactory;
+import org.talend.updates.runtime.model.AbstractExtraFeature;
+import org.talend.updates.runtime.model.ExtraFeature;
 import org.talend.updates.runtime.ui.ShowWizardHandler;
 
 /**
@@ -85,6 +91,8 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
     private final String joblet = "Joblet"; //$NON-NLS-1$
 
     private final String assist = "Component Assist"; //$NON-NLS-1$
+
+    private final String HELP_FEATURE_NAME = "Talend Help"; //$NON-NLS-1$
 
     private static String oldPath = null;
 
@@ -295,7 +303,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
                 boolean isOffLine = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
                 Button checkBox = getButton();
                 if (checkBox != null) {
-                    if (isOffLine && !HelpUtil.isHelpInstalled()) {
+                    if (isOffLine && !HelpUtil.isHelpInstalled(false)) {
                         checkBox.setSelection(true);
                         doStore();
                     } else {
@@ -440,8 +448,8 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
         if ("".equals(newPath)) { //$NON-NLS-1$
             newPath = null;
         }
-        DesignerPlugin.getDefault().getPreferenceStore()
-                .setValue(TalendDesignerPrefConstants.COMPONENT_ASSIST, enableComponentAssistCheckBoxField.getBooleanValue());
+        DesignerPlugin.getDefault().getPreferenceStore().setValue(TalendDesignerPrefConstants.COMPONENT_ASSIST,
+                enableComponentAssistCheckBoxField.getBooleanValue());
         TalendEditorComponentCreationUtil.updateAssistListener();
         if (this.oldPath != newPath) {
 
@@ -490,8 +498,9 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
                                                     }
                                                 }
                                                 if (StringUtils.isNotEmpty(component.getFailureMessage())) {
-                                                    MessageDialog.openError(getShell(), Messages
-                                                            .getString("ComponentsPreferencePage.installComponentsFailure"),//$NON-NLS-1$
+                                                    MessageDialog.openError(getShell(),
+                                                            Messages.getString(
+                                                                    "ComponentsPreferencePage.installComponentsFailure"), //$NON-NLS-1$
                                                             component.getFailureMessage());
                                                 }
                                             } finally {
@@ -531,10 +540,12 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
 
         }
 
-        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !HelpUtil.isHelpInstalled()) {
+        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !HelpUtil.isHelpInstalled(false)
+                && InstallFeatureObserver.getInstance().isNeedLanuchInstallWizard(HELP_FEATURE_NAME)) {
             if (MessageDialog.openConfirm(getShell(), Messages.getString("ComponentsPreferencePage.titleInstallHelp"),
                     Messages.getString("ComponentsPreferencePage.msgInstallHelp"))) {
-                flag = installHelpFeature();
+                installHelpFeature();
+                flag = true;
             } else {
                 flag = false;
             }
@@ -542,9 +553,36 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
         return flag;
     }
 
-    private boolean installHelpFeature() {
-        new ShowWizardHandler().showUpdateWizard(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                null);
-        return true;
+    private void installHelpFeature() {
+        final Set<ExtraFeature> installSet = new HashSet<ExtraFeature>();
+        final IRunnableWithProgress runnable = new IRunnableWithProgress() {
+
+            @Override
+            public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                ExtraFeaturesUpdatesFactory extraFeaturesFactory = new ExtraFeaturesUpdatesFactory(false);
+                final Set<ExtraFeature> uninstalledExtraFeatures = new HashSet<ExtraFeature>();
+                extraFeaturesFactory.retrieveUninstalledExtraFeatures(monitor, uninstalledExtraFeatures);
+
+                for (ExtraFeature feature : uninstalledExtraFeatures) {
+                    if (HELP_FEATURE_NAME.equalsIgnoreCase(feature.getName())) {
+                        if (feature instanceof AbstractExtraFeature) {
+                            ((AbstractExtraFeature) feature).setMustBeInstalled(true);
+                        }
+                        installSet.add(feature);
+                    }
+                }
+            }
+        };
+        final ProgressMonitorDialog dialog = new ProgressMonitorDialog(null);
+        try {
+            dialog.run(true, true, runnable);
+        } catch (InvocationTargetException e) {
+            return;
+        } catch (InterruptedException e) {
+            return;
+        }
+        synchronized (ShowWizardHandler.showWizardLock) {
+            new ShowWizardHandler().showUpdateWizard(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), installSet);
+        }
     }
 }

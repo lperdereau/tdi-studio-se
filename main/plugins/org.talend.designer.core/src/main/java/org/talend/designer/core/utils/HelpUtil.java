@@ -55,7 +55,7 @@ public class HelpUtil {
         }
         boolean isOffLineHelpInPre = DesignerPlugin.getDefault().getPreferenceStore()
                 .getBoolean(TalendDesignerPrefConstants.HELP_OFFLINE);
-        if (isHelpInstalled() && isOffLineHelpInPre) {
+        if (isHelpInstalled(true) && isOffLineHelpInPre) {
             return false;
         }
         return true;
@@ -84,8 +84,8 @@ public class HelpUtil {
         Program.launch(url);
     }
 
-    public static boolean isHelpInstalled() {
-        if (IS_HELP_INSTALLED == null) {
+    public static boolean isHelpInstalled(boolean isUseCache) {
+        if (IS_HELP_INSTALLED == null || !isUseCache) {
             IS_HELP_INSTALLED = true;
             if (!PluginChecker.isPluginLoaded(PluginChecker.HELP_DI_EE_PLUGIN_ID)) {
                 IS_HELP_INSTALLED = false;
