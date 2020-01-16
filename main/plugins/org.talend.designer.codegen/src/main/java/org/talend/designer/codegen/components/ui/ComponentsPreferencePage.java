@@ -303,7 +303,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
                 boolean isOffLine = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
                 Button checkBox = getButton();
                 if (checkBox != null) {
-                    if (isOffLine && !ComponentsHelpUtil.isHelpInstalled(false)) {
+                    if (isOffLine && !ComponentsHelpUtil.isHelpInstalled()) {
                         checkBox.setSelection(true);
                         doStore();
                     } else {
@@ -540,7 +540,8 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
 
         }
 
-        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !ComponentsHelpUtil.isHelpInstalled(false)
+        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue()
+                && !ComponentsHelpUtil.isHelpInstalled()
                 && InstallFeatureObserver.getInstance().isNeedLanuchInstallWizard(HELP_FEATURE_NAME)) {
             if (MessageDialog.openConfirm(getShell(), Messages.getString("ComponentsPreferencePage.titleInstallHelp"),
                     Messages.getString("ComponentsPreferencePage.msgInstallHelp"))) {
@@ -561,7 +562,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                 ExtraFeaturesUpdatesFactory extraFeaturesFactory = new ExtraFeaturesUpdatesFactory(false);
                 final Set<ExtraFeature> uninstalledExtraFeatures = new HashSet<ExtraFeature>();
-                extraFeaturesFactory.retrieveUninstalledExtraFeatures(monitor, uninstalledExtraFeatures);
+                extraFeaturesFactory.retrieveUninstalledExtraFeatures(monitor, uninstalledExtraFeatures, false);
 
                 for (ExtraFeature feature : uninstalledExtraFeatures) {
                     if (HELP_FEATURE_NAME.equalsIgnoreCase(feature.getName())) {
