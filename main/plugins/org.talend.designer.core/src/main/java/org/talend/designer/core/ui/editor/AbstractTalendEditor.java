@@ -229,7 +229,7 @@ import org.talend.designer.core.ui.views.jobsettings.JobSettings;
 import org.talend.designer.core.ui.views.problems.Problems;
 import org.talend.designer.core.ui.views.properties.ComponentSettingsView;
 import org.talend.designer.core.utils.ConnectionUtil;
-import org.talend.designer.core.utils.HelpUtil;
+import org.talend.designer.core.utils.ComponentsHelpUtil;
 import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.repository.model.RepositoryConstants;
 import org.talend.repository.ui.views.IRepositoryView;
@@ -2194,10 +2194,10 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                     }
                 }
                 if (node != null) {
-                    if (HelpUtil.isUseOnLineHelp()) {
+                    if (ComponentsHelpUtil.isUseOnLineHelp()) {
                         if (!node.isJoblet() && node.getComponent() != null && node.getComponent().isLoaded()
                                 && node.getComponent().isMadeByTalend()) {
-                            HelpUtil.openLineHelp(node.getComponent().getName());
+                            ComponentsHelpUtil.openLineHelp(node.getComponent().getName());
                         }
                     } else {
                         String helpLink = (String) node.getPropertyValue(EParameterName.HELP.getName());
@@ -2205,7 +2205,7 @@ public abstract class AbstractTalendEditor extends GraphicalEditorWithFlyoutPale
                         if (helpLink == null || "".equals(helpLink) || !requiredHelpLink.equals(helpLink)) {
                             helpLink = ((Process) node.getProcess()).getBaseHelpLink() + node.getComponent().getName();
                         }
-                        HelpUtil.displayHelp(helpLink);
+                        PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpLink);
                     }
                 }
             }

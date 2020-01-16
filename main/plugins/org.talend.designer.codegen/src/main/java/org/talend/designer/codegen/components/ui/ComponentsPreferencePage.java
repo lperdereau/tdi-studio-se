@@ -55,7 +55,7 @@ import org.talend.designer.codegen.i18n.Messages;
 import org.talend.designer.core.DesignerPlugin;
 import org.talend.designer.core.assist.TalendEditorComponentCreationUtil;
 import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
-import org.talend.designer.core.utils.HelpUtil;
+import org.talend.designer.core.utils.ComponentsHelpUtil;
 import org.talend.updates.runtime.InstallFeatureObserver;
 import org.talend.updates.runtime.engine.ExtraFeaturesUpdatesFactory;
 import org.talend.updates.runtime.model.AbstractExtraFeature;
@@ -303,7 +303,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
                 boolean isOffLine = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(getPreferenceName());
                 Button checkBox = getButton();
                 if (checkBox != null) {
-                    if (isOffLine && !HelpUtil.isHelpInstalled(false)) {
+                    if (isOffLine && !ComponentsHelpUtil.isHelpInstalled(false)) {
                         checkBox.setSelection(true);
                         doStore();
                     } else {
@@ -379,7 +379,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
             createForJoblet(parent);
         }
         createForComponentAssist(parent);
-        if (HelpUtil.isEnabledOnLineHelp()) {
+        if (ComponentsHelpUtil.isEnabledOnLineHelp()) {
             createForHelpType(parent);
         }
         parent.pack();
@@ -540,7 +540,7 @@ public class ComponentsPreferencePage extends FieldEditorPreferencePage implemen
 
         }
 
-        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !HelpUtil.isHelpInstalled(false)
+        if (enableOnLineHelpField != null && !enableOnLineHelpField.getBooleanValue() && !ComponentsHelpUtil.isHelpInstalled(false)
                 && InstallFeatureObserver.getInstance().isNeedLanuchInstallWizard(HELP_FEATURE_NAME)) {
             if (MessageDialog.openConfirm(getShell(), Messages.getString("ComponentsPreferencePage.titleInstallHelp"),
                     Messages.getString("ComponentsPreferencePage.msgInstallHelp"))) {

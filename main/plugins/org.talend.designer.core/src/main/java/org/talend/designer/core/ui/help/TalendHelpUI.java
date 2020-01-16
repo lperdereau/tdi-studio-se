@@ -20,13 +20,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.help.WorkbenchHelpSystem;
-import org.talend.designer.core.utils.HelpUtil;
+import org.talend.designer.core.utils.ComponentsHelpUtil;
 
 public class TalendHelpUI extends DefaultHelpUI {
 
     @Override
     public void displayContext(IContext context, int x, int y) {
-        if (HelpUtil.isUseOnLineHelp() && isProcessNodeHelpContext()) {
+        if (ComponentsHelpUtil.isUseOnLineHelp() && isProcessNodeHelpContext()) {
             return;
         }
         super.displayContext(context, x, y);

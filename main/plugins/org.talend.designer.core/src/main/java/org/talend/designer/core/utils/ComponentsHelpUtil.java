@@ -16,21 +16,16 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.program.Program;
-import org.eclipse.ui.PlatformUI;
 import org.talend.commons.utils.VersionUtils;
 import org.talend.core.PluginChecker;
 import org.talend.designer.core.DesignerPlugin;
 import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
 
-public class HelpUtil {
+public class ComponentsHelpUtil {
 
     private static final String JVM_PARAM_ONLINE_HELP_ENABLE = "online.help.enable"; //$NON-NLS-1$
 
     private static final String JVM_PARAM_ONLINE_HELP_VERSION = "online.help.version"; //$NON-NLS-1$
-
-    private static final String BASE_HELP_ID_PREFIX = "org.talend.help";
-
-    private static final String EXTERNAL_HELP_ID_PREFIX = "org.talend.help.external";
 
     private static String INTERNAL_VERSION = VersionUtils.getInternalVersion();
 
@@ -42,8 +37,6 @@ public class HelpUtil {
     private static String HELP_LANGUAGE = Locale.FRENCH.equals(Locale.getDefault().getLanguage()) ? "fr" : "en"; //$NON-NLS-1$ //$NON-NLS-2$
 
     private static Boolean IS_HELP_INSTALLED = null;
-
-    private static Boolean IS_BASE_HELP_INSTALLED = null;
 
     public static boolean isEnabledOnLineHelp() {
         return Boolean.parseBoolean(System.getProperty(JVM_PARAM_ONLINE_HELP_ENABLE, "false"));
@@ -102,16 +95,4 @@ public class HelpUtil {
         return IS_HELP_INSTALLED;
     }
 
-    public static void displayHelp(String helpId) {
-        if (IS_BASE_HELP_INSTALLED == null) {
-            IS_BASE_HELP_INSTALLED = PluginChecker.isPluginLoaded(PluginChecker.HELP_PLUGIN_ID);
-        }
-
-        if (!IS_BASE_HELP_INSTALLED && helpId.startsWith(BASE_HELP_ID_PREFIX)) {
-            PlatformUI.getWorkbench().getHelpSystem()
-                    .displayHelp(EXTERNAL_HELP_ID_PREFIX + helpId.substring(BASE_HELP_ID_PREFIX.length()));
-            return;
-        }
-        PlatformUI.getWorkbench().getHelpSystem().displayHelp(helpId);
-    }
 }
