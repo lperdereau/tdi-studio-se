@@ -242,7 +242,8 @@ public class PostgresGenerationManager extends DbGenerationManager {
                 tableAndSchema = tableAndSchema + getHandledField(tableNoQuote);
 
                 if (isVariable(schemaNoQuote) || isVariable(tableNoQuote)) {
-                    tableAndSchema = replaceVariablesForExpression(component, tableAndSchema);
+                    tableAndSchema = replaceVariablesForExpression(component, tableAndSchema,
+                            DbGenerationManager.EXPRESSION_TYPE_TABLE_DECLARATION);
                 }
                 sb.append(tableAndSchema);
             } else {
@@ -291,7 +292,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
     }
 
     @Override
-    protected String replaceVariablesForExpression(DbMapComponent component, String expression) {
+    protected String replaceVariablesForExpression(DbMapComponent component, String expression, int expressiontType) {
         if (expression == null) {
             return null;
         }
@@ -299,7 +300,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
         boolean haveReplace = false;
         for (String context : contextList) {
             if (expression.contains(context)) {
-                expression = expression.replaceAll("\\b" + context + "\\b", "\\\\\"\"+" + context + "+\"\\\\\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                expression = replaceContextValue(expression, expressiontType, context);
                 haveReplace = true;
             }
         }
@@ -307,7 +308,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
             List<String> connContextList = getConnectionContextList(component);
             for (String context : connContextList) {
                 if (expression.contains(context)) {
-                    expression = expression.replaceAll("\\b" + context + "\\b", "\\\\\"\"+" + context + "+\"\\\\\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                    expression = replaceContextValue(expression, expressiontType, context);
                 }
             }
         }
@@ -319,6 +320,15 @@ public class PostgresGenerationManager extends DbGenerationManager {
             }
             String regex = parser.getGlobalMapExpressionRegex(globalMapStr);
             expression = expression.replaceAll(regex, "\\\\\"\"+" + replacement + "+\"\\\\\""); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        return expression;
+    }
+
+    private String replaceContextValue(String expression, int expressiontType, String context) {
+        if (DbGenerationManager.EXPRESSION_TYPE_CONDITION == expressiontType) {
+            expression = expression.replaceAll("\\b" + context + "\\b", "\" +" + context + "+ \"");
+        } else {
+            expression = expression.replaceAll("\\b" + context + "\\b", "\\\\\"\"+" + context + "+\"\\\\\"");
         }
         return expression;
     }

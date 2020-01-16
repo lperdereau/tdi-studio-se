@@ -138,7 +138,8 @@ public class OracleGenerationManager extends DbGenerationManager {
                         columnSegment = DbMapSqlConstants.COMMA + DbMapSqlConstants.SPACE + columnSegment;
                     }
                     if (expression != null && expression.trim().length() > 0) {
-                        String exp = replaceVariablesForExpression(component, expression);
+                        String exp = replaceVariablesForExpression(component, expression,
+                                DbGenerationManager.EXPRESSION_TYPE_SELECT_DECLARATION);
                         appendSqlQuery(sb, exp);
                         DataMapExpressionParser dataMapExpressionParser = new DataMapExpressionParser(language);
                         TableEntryLocation[] tableEntriesLocationsSources = dataMapExpressionParser
@@ -297,10 +298,12 @@ public class OracleGenerationManager extends DbGenerationManager {
                             // containWhereAddition.add(exp);
                             // } else
                             if (containWith(exp, DbMapSqlConstants.OR, true) || containWith(exp, DbMapSqlConstants.AND, true)) {
-                                exp = replaceVariablesForExpression(component, exp);
+                                exp = replaceVariablesForExpression(component, exp,
+                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
                                 originalWhereAddition.add(exp);
                             } else {
-                                exp = replaceVariablesForExpression(component, exp);
+                                exp = replaceVariablesForExpression(component, exp,
+                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
                                 whereAddition.add(exp);
                             }
                         }
@@ -311,7 +314,7 @@ public class OracleGenerationManager extends DbGenerationManager {
                     for (ExternalDbMapEntry entry : customOtherConditionsEntries) {
                         String exp = initExpression(component, entry);
                         if (exp != null && !DbMapSqlConstants.EMPTY.equals(exp.trim())) {
-                            exp = replaceVariablesForExpression(component, exp);
+                            exp = replaceVariablesForExpression(component, exp, DbGenerationManager.EXPRESSION_TYPE_CONDITION);
                             otherAddition.add(exp);
                         }
                     }
