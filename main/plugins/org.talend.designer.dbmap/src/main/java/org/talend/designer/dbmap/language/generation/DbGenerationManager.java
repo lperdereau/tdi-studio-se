@@ -71,11 +71,11 @@ import org.talend.designer.dbmap.utils.DataMapExpressionParser;
  */
 public abstract class DbGenerationManager {
 
-    protected static final int EXPRESSION_TYPE_SELECT_DECLARATION = 1;
+    protected static final int QUERY_TYPE_SELECT_DECLARATION = 1;
 
-    protected static final int EXPRESSION_TYPE_CONDITION = 2;
+    protected static final int QUERY_TYPE_CONDITION = 2;
 
-    protected static final int EXPRESSION_TYPE_TABLE_DECLARATION = 4;
+    protected static final int QUERY_TYPE_TABLE_DECLARATION = 4;
 
     private Map<String, ExternalDbMapTable> nameToInputTable;
 
@@ -359,7 +359,7 @@ public abstract class DbGenerationManager {
                                 + getAliasOf(dbMapEntry.getName());
                     }
                     String exp = replaceVariablesForExpression(component, expression,
-                            DbGenerationManager.EXPRESSION_TYPE_SELECT_DECLARATION);
+                            DbGenerationManager.QUERY_TYPE_SELECT_DECLARATION);
                     String columnSegment = exp;
                     if (i > 0) {
                         appendSqlQuery(sb, DbMapSqlConstants.COMMA);
@@ -500,11 +500,11 @@ public abstract class DbGenerationManager {
                             // } else
                             if (containWith(exp, DbMapSqlConstants.OR, true) || containWith(exp, DbMapSqlConstants.AND, true)) {
                                 exp = replaceVariablesForExpression(component, exp,
-                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                                        DbGenerationManager.QUERY_TYPE_CONDITION);
                                 originalWhereAddition.add(exp);
                             } else {
                                 exp = replaceVariablesForExpression(component, exp,
-                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                                        DbGenerationManager.QUERY_TYPE_CONDITION);
                                 whereAddition.add(exp);
                             }
                         }
@@ -517,7 +517,7 @@ public abstract class DbGenerationManager {
                         String exp = initExpression(component, entry);
                         if (exp != null && !DbMapSqlConstants.EMPTY.equals(exp.trim())) {
                             exp = replaceVariablesForExpression(component, exp,
-                                    DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                                    DbGenerationManager.QUERY_TYPE_CONDITION);
                             otherAddition.add(exp);
                         }
                     }
@@ -661,7 +661,7 @@ public abstract class DbGenerationManager {
                                 + getAliasOf(dbMapEntry.getName());
                     }
                     String exp = replaceVariablesForExpression(component, expression,
-                            DbGenerationManager.EXPRESSION_TYPE_SELECT_DECLARATION);
+                            DbGenerationManager.QUERY_TYPE_SELECT_DECLARATION);
                     String columnSegment = exp;
                     // Added isFirstColumn to conform old behaior if first column is skipped
                     if (i > 0 && !isFirstColumn) {
@@ -767,11 +767,11 @@ public abstract class DbGenerationManager {
                         if (exp != null && !DbMapSqlConstants.EMPTY.equals(exp.trim())) {
                             if (containWith(exp, DbMapSqlConstants.OR, true) || containWith(exp, DbMapSqlConstants.AND, true)) {
                                 exp = replaceVariablesForExpression(component, exp,
-                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                                        DbGenerationManager.QUERY_TYPE_CONDITION);
                                 originalWhereAddition.add(exp);
                             } else {
                                 exp = replaceVariablesForExpression(component, exp,
-                                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                                        DbGenerationManager.QUERY_TYPE_CONDITION);
                                 whereAddition.add(exp);
                             }
                         }
@@ -783,7 +783,7 @@ public abstract class DbGenerationManager {
                     for (ExternalDbMapEntry entry : customOtherConditionsEntries) {
                         String exp = initExpression(component, entry);
                         if (exp != null && !DbMapSqlConstants.EMPTY.equals(exp.trim())) {
-                            exp = replaceVariablesForExpression(component, exp, DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                            exp = replaceVariablesForExpression(component, exp, DbGenerationManager.QUERY_TYPE_CONDITION);
                             otherAddition.add(exp);
                         }
                     }
@@ -1035,6 +1035,17 @@ public abstract class DbGenerationManager {
         return contextList;
     }
 
+    protected List<IContextParameter> getContextParameterList(DbMapComponent component) {
+        List<IContextParameter> contextList = new ArrayList<IContextParameter>();
+        IProcess process = component.getProcess();
+        IContext context = process.getContextManager().getDefaultContext();
+        List<IContextParameter> paraList = context.getContextParameterList();
+        if (paraList != null) {
+            contextList.addAll(paraList);
+        }
+        return contextList;
+    }
+
     protected Set<String> getGlobalMapList(DbMapComponent component, String sqlQuery) {
         return parser.getGlobalMapSet(sqlQuery);
     }
@@ -1162,7 +1173,7 @@ public abstract class DbGenerationManager {
                 appendSqlQuery(sbWhere, DbMapSqlConstants.RIGHT_COMMENT, isSqlQuery);
             } else if (expressionIsSet) {
                 String exp = replaceVariablesForExpression(component, originExpression,
-                        DbGenerationManager.EXPRESSION_TYPE_CONDITION);
+                        DbGenerationManager.QUERY_TYPE_CONDITION);
                 appendSqlQuery(sbWhere, exp, isSqlQuery);
                 appendSqlQuery(sbWhere, getSpecialLeftJoin(table), isSqlQuery);
             }
@@ -1339,7 +1350,7 @@ public abstract class DbGenerationManager {
             }
             if (!replace) {
                 String exp = replaceVariablesForExpression(component, inputTable.getName(),
-                        DbGenerationManager.EXPRESSION_TYPE_TABLE_DECLARATION);
+                        DbGenerationManager.QUERY_TYPE_TABLE_DECLARATION);
                 appendSqlQuery(sb, exp);
             }
         }
@@ -1605,7 +1616,7 @@ public abstract class DbGenerationManager {
 
     protected String getHandledTableName(DbMapComponent component, String tableName, String alias) {
         if (alias == null) {
-            return replaceVariablesForExpression(component, tableName, DbGenerationManager.EXPRESSION_TYPE_TABLE_DECLARATION);
+            return replaceVariablesForExpression(component, tableName, DbGenerationManager.QUERY_TYPE_TABLE_DECLARATION);
         } else {
             List<IConnection> inputConnections = (List<IConnection>) component.getIncomingConnections();
             IConnection iconn = this.getConnectonByName(inputConnections, tableName);

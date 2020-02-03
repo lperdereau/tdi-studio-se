@@ -243,7 +243,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
 
                 if (isVariable(schemaNoQuote) || isVariable(tableNoQuote)) {
                     tableAndSchema = replaceVariablesForExpression(component, tableAndSchema,
-                            DbGenerationManager.EXPRESSION_TYPE_TABLE_DECLARATION);
+                            DbGenerationManager.QUERY_TYPE_TABLE_DECLARATION);
                 }
                 sb.append(tableAndSchema);
             } else {
@@ -325,7 +325,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
     }
 
     private String replaceContextValue(String expression, int expressiontType, String context) {
-        if (DbGenerationManager.EXPRESSION_TYPE_CONDITION == expressiontType) {
+        if (DbGenerationManager.QUERY_TYPE_CONDITION == expressiontType) {
             expression = expression.replaceAll("\\b" + context + "\\b", "\" +" + context + "+ \"");
         } else {
             expression = expression.replaceAll("\\b" + context + "\\b", "\\\\\"\"+" + context + "+\"\\\\\"");
