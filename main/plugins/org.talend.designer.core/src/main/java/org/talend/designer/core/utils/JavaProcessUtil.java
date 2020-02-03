@@ -179,12 +179,18 @@ public class JavaProcessUtil {
             getModulesInTable(process, elementParameter, modulesNeeded);
         }
 
+        boolean addDefault = false;
         if (process instanceof IProcess2) {
             Item item = ((IProcess2) process).getProperty().getItem();
-            if (item instanceof ProcessItem) {
+            if (item == null) {
+                addDefault = true;
+            } else if (item instanceof ProcessItem) {
                 modulesNeeded.addAll(ModulesNeededProvider.getModulesNeededForProcess((ProcessItem) item, process));
             }
         } else {
+            addDefault = true;
+        }
+        if (addDefault) {
             Set<ModuleNeeded> optionalJarsOnlyForRoutines = new HashSet<ModuleNeeded>();
             optionalJarsOnlyForRoutines.addAll(ModulesNeededProvider.getSystemRunningModules());
             modulesNeeded.addAll(optionalJarsOnlyForRoutines);
@@ -315,6 +321,10 @@ public class JavaProcessUtil {
     }
 
     public static String getHadoopClusterItemId(INode node) {
+        return getHadoopClusterItemId(node, true);
+    }
+
+    public static String getHadoopClusterItemId(INode node, boolean ignore) {
         IHadoopClusterService hadoopClusterService = HadoopRepositoryUtil.getHadoopClusterService();
         if (hadoopClusterService == null) {
             return null;
@@ -329,7 +339,7 @@ public class JavaProcessUtil {
         }
         Map<String, IElementParameter> childParameters = propertyElementParameter.getChildParameters();
         String propertyType = (String) childParameters.get(EParameterName.PROPERTY_TYPE.getName()).getValue();
-        if (!EmfComponent.REPOSITORY.equals(propertyType)) {
+        if (ignore && !EmfComponent.REPOSITORY.equals(propertyType)) {
             return null;
         }
         IElementParameter propertyParam = childParameters.get(EParameterName.REPOSITORY_PROPERTY_TYPE.getName());

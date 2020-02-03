@@ -242,8 +242,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
                 tableAndSchema = tableAndSchema + getHandledField(tableNoQuote);
 
                 if (isVariable(schemaNoQuote) || isVariable(tableNoQuote)) {
-                    tableAndSchema = replaceVariablesForExpression(component, tableAndSchema,
-                            DbGenerationManager.EXPRESSION_TYPE_TABLE_DECLARATION);
+                    tableAndSchema = replaceVariablesForExpression(component, tableAndSchema);
                 }
                 sb.append(tableAndSchema);
             } else {
@@ -292,7 +291,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
     }
 
     @Override
-    protected String replaceVariablesForExpression(DbMapComponent component, String expression, int expressiontType) {
+    protected String replaceVariablesForExpression(DbMapComponent component, String expression) {
         if (expression == null) {
             return null;
         }
@@ -300,7 +299,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
         boolean haveReplace = false;
         for (String context : contextList) {
             if (expression.contains(context)) {
-                expression = replaceContextValue(expression, expressiontType, context);
+                expression = replaceContextValue(expression, context);
                 haveReplace = true;
             }
         }
@@ -308,7 +307,7 @@ public class PostgresGenerationManager extends DbGenerationManager {
             List<String> connContextList = getConnectionContextList(component);
             for (String context : connContextList) {
                 if (expression.contains(context)) {
-                    expression = replaceContextValue(expression, expressiontType, context);
+                    expression = replaceContextValue(expression, context);
                 }
             }
         }
@@ -324,11 +323,11 @@ public class PostgresGenerationManager extends DbGenerationManager {
         return expression;
     }
 
-    private String replaceContextValue(String expression, int expressiontType, String context) {
-        if (DbGenerationManager.EXPRESSION_TYPE_CONDITION == expressiontType) {
-            expression = expression.replaceAll("\\b" + context + "\\b", "\" +" + context + "+ \"");
-        } else {
+    private String replaceContextValue(String expression, String context) {
+        if (inputSchemaContextSet.contains(context)) {
             expression = expression.replaceAll("\\b" + context + "\\b", "\\\\\"\"+" + context + "+\"\\\\\"");
+        } else {
+            expression = expression.replaceAll("\\b" + context + "\\b", "\" +" + context + "+ \"");
         }
         return expression;
     }
