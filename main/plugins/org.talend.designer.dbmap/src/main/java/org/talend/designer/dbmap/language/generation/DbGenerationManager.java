@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.utils.StringUtils;
 import org.talend.commons.utils.data.text.StringHelper;
@@ -1058,18 +1057,7 @@ public abstract class DbGenerationManager {
 
         return contextList;
     }
-
-    protected List<IContextParameter> getContextParameterList(DbMapComponent component) {
-        List<IContextParameter> contextList = new ArrayList<IContextParameter>();
-        IProcess process = component.getProcess();
-        IContext context = process.getContextManager().getDefaultContext();
-        List<IContextParameter> paraList = context.getContextParameterList();
-        if (paraList != null) {
-            contextList.addAll(paraList);
-        }
-        return contextList;
-    }
-
+    
     protected Set<String> getGlobalMapList(DbMapComponent component, String sqlQuery) {
         return parser.getGlobalMapSet(sqlQuery);
     }

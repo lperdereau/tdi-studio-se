@@ -58,7 +58,7 @@ public class HiveGenerationManager extends DbGenerationManager {
     }
 
     @Override
-    protected String replaceVariablesForExpression(DbMapComponent component, String expression, int expressiontType) {
+    protected String replaceVariablesForExpression(DbMapComponent component, String expression) {
         if (expression == null) {
             return null;
         }
