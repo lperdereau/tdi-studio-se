@@ -1493,7 +1493,7 @@ public abstract class DbGenerationManager {
                                         }
                                         expression = expression.replaceFirst(tableValue + "\\." + co.getLabel(), //$NON-NLS-1$
                                                 tableValue + "\\." + oriName); //$NON-NLS-1$
-                                        expression = replaceAuotes(component, expression, quto_markParser, quto_mark);
+                                        expression = replaceAuotes(expression, quto_markParser, quto_mark);
                                     }
                                 }
 
@@ -1508,7 +1508,7 @@ public abstract class DbGenerationManager {
         return expression;
     }
 
-    protected String replaceAuotes(DbMapComponent component, String expression, String quoParser, String quote) {
+    protected String replaceAuotes(String expression, String quoParser, String quote) {
         if(!expression.contains("'")){
             return expression.replaceAll(quoParser,"\\\\" +quote); //$NON-NLS-1$
         }
