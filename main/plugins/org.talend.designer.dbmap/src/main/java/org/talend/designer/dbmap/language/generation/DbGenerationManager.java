@@ -571,7 +571,8 @@ public abstract class DbGenerationManager {
         return sqlQuery;
     }
 
-    protected void collectSchemaContextParam(DbMapComponent dbMapComponent, List<ExternalDbMapTable> inputTables, List<String> contextList) {
+    protected void collectSchemaContextParam(DbMapComponent dbMapComponent, List<ExternalDbMapTable> inputTables,
+            List<String> contextList) {
         List<IConnection> incomingConnections = (List<IConnection>) dbMapComponent.getIncomingConnections();
         if (incomingConnections != null) {
             for (IConnection connection : incomingConnections) {
