@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.utils.StringUtils;
 import org.talend.commons.utils.data.text.StringHelper;
@@ -294,6 +295,7 @@ public abstract class DbGenerationManager {
         queryColumnsSegments.clear();
         querySegments.clear();
         subQueryTable.clear();
+        inputSchemaContextSet.clear();
 
         this.tabSpaceString = tabString;
         DbMapComponent component = getDbMapComponent(dbMapComponent);
@@ -306,7 +308,9 @@ public abstract class DbGenerationManager {
         }
 
         ExternalDbMapData data = component.getExternalData();
-
+        List<ExternalDbMapTable> inputTables = data.getInputTables();
+        List<String> contextList = getContextList(component);
+        collectSchemaContextParam(dbMapComponent, inputTables, contextList);
         StringBuilder sb = new StringBuilder();
 
         List<ExternalDbMapTable> outputTables = data.getOutputTables();
@@ -379,9 +383,6 @@ public abstract class DbGenerationManager {
             appendSqlQuery(sb, DbMapSqlConstants.NEW_LINE);
             appendSqlQuery(sb, tabSpaceString);
             appendSqlQuery(sb, DbMapSqlConstants.FROM);
-            List<ExternalDbMapTable> inputTables = data.getInputTables();
-            List<String> contextList = getContextList(component);
-            collectSchemaContextParam(inputTables, contextList);
             // load input table in hash
             boolean explicitJoin = false;
             int lstSizeInputTables = inputTables.size();
@@ -570,32 +571,34 @@ public abstract class DbGenerationManager {
         return sqlQuery;
     }
 
-    protected void collectSchemaContextParam(List<ExternalDbMapTable> inputTables, List<String> contextList) {
-        for (ExternalDbMapTable inputTable : inputTables) {
-            String alias = inputTable.getAlias();
-            String tableName = inputTable.getTableName();
-            for (String context : contextList) {
-                if ((org.apache.commons.lang3.StringUtils.equals(tableName, context)
-                        || org.apache.commons.lang3.StringUtils.equals(alias, context)) && !inputSchemaContextSet.contains(context)) {
-                    inputSchemaContextSet.add(context);
-                    break;
-                }
-            }
-            MapExpressionParser mapParser2 = new MapExpressionParser("\\s*(\\w+)\\s*\\.\\s*(\\w+)\\s*"); //$NON-NLS-1$
-            List<Map<String, String>> tableNameList = mapParser2.parseInTableEntryLocations(tableName);
-            for (Map<String, String> tableNameMap : tableNameList) {
-                Set<Entry<String, String>> setTable = tableNameMap.entrySet();
-                Iterator<Entry<String, String>> iteTable = setTable.iterator();
-
-                while (iteTable.hasNext()) {
-                    Entry<String, String> tableEntry = iteTable.next();
-                    String tableLabel = tableEntry.getKey();
-                    String schemaValue = tableEntry.getValue();
-                    for (String context : contextList) {
-                        if (org.apache.commons.lang3.StringUtils.equals(schemaValue + DOT_STR + tableLabel, context) && !inputSchemaContextSet.contains(context)) {
-                            inputSchemaContextSet.add(context);
+    protected void collectSchemaContextParam(DbMapComponent dbMapComponent, List<ExternalDbMapTable> inputTables, List<String> contextList) {
+        List<IConnection> incomingConnections = (List<IConnection>) dbMapComponent.getIncomingConnections();
+        if (incomingConnections != null) {
+            for (IConnection connection : incomingConnections) {
+                INode input = connection.getSource();
+                if (input != null) {
+                    IElementParameter eltSchemaNameParam = input.getElementParameter("ELT_SCHEMA_NAME"); //$NON-NLS-1$
+                    if (eltSchemaNameParam != null && eltSchemaNameParam.getValue() != null) {
+                        String schema = String.valueOf(eltSchemaNameParam.getValue());
+                        if (schema != null && !inputSchemaContextSet.contains(schema) && contextList.contains(schema)) {
+                            inputSchemaContextSet.add(schema);
                         }
                     }
+                    IElementParameter eltTableNameParam = input.getElementParameter("ELT_TABLE_NAME"); //$NON-NLS-1$
+                    if (eltTableNameParam != null && eltTableNameParam.getValue() != null) {
+                        String table = String.valueOf(eltTableNameParam.getValue());
+                        if (table != null && !inputSchemaContextSet.contains(table) && contextList.contains(table)) {
+                            inputSchemaContextSet.add(table);
+                        }
+                    }
+                }
+            }
+        }
+        if (inputTables != null) {
+            for (ExternalDbMapTable table : inputTables) {
+                if (table.getAlias() != null && !inputSchemaContextSet.contains(table.getAlias())
+                        && contextList.contains(table.getAlias())) {
+                    inputSchemaContextSet.add(table.getAlias());
                 }
             }
         }
