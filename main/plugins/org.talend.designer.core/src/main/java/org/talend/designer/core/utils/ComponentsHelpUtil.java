@@ -23,8 +23,6 @@ import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
 
 public class ComponentsHelpUtil {
 
-    private static final String JVM_PARAM_ONLINE_HELP_ENABLE = "online.help.enable"; //$NON-NLS-1$
-
     private static final String JVM_PARAM_ONLINE_HELP_VERSION = "online.help.version"; //$NON-NLS-1$
 
     private static String INTERNAL_VERSION = VersionUtils.getInternalVersion();
@@ -73,7 +71,7 @@ public class ComponentsHelpUtil {
     public static boolean isHelpInstalled() {
         if (IS_HELP_INSTALLED == null) {
             IS_HELP_INSTALLED = true;
-            if (!PluginChecker.isPluginLoaded(PluginChecker.HELP_DI_EE_PLUGIN_ID)) {
+            if (PluginChecker.isCoreTISPluginLoaded() && !PluginChecker.isPluginLoaded(PluginChecker.HELP_DI_EE_PLUGIN_ID)) {
                 IS_HELP_INSTALLED = false;
             }
             if (IS_HELP_INSTALLED && PluginChecker.isPluginLoaded(PluginChecker.ESBEE_PLUGIN_ID)
