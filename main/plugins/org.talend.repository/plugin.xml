@@ -3329,6 +3329,15 @@
               name="RemovePigudfModulesMigrationTask"
               version="7.3.1">
         </projecttask>
+        <projecttask
+              beforeLogon="false"
+              breaks="7.4.0"
+              class="org.talend.repository.model.migration.UpgradeProcessRepositoryContextIdMigrationTask"
+              description="Upgrade process repository context id for job/joblet"
+              id="org.talend.repository.model.migration.UpgradeProcessRepositoryContextIdMigrationTask"
+              name="UpgradeProcessRepositoryContextIdMigrationTas"
+              version="7.4.1">
+        </projecttask>
    </extension>
 
    <extension
