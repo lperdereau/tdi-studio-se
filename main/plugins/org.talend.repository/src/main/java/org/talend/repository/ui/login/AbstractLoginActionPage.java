@@ -267,6 +267,10 @@ public abstract class AbstractLoginActionPage extends AbstractActionPage {
 
         protected List<StyleRange> errStyleRange;
 
+        protected Throwable authException;
+
+        protected boolean hasAuthException = false;
+
         public void clearAllMessages() {
             errMessage = null;
             warnMessage = null;
@@ -275,6 +279,8 @@ public abstract class AbstractLoginActionPage extends AbstractActionPage {
             warnStyleRange = null;
             infoStyleRange = null;
             loginDialog.clearErrorMessage();
+            authException = null;
+            hasAuthException = false;
         }
 
         public void hideAllMessages() {
@@ -343,6 +349,22 @@ public abstract class AbstractLoginActionPage extends AbstractActionPage {
                 hasError = true;
             }
             return hasError;
+        }
+
+        public Throwable getAuthException() {
+            return authException;
+        }
+
+        public void setAuthException(Throwable authException) {
+            this.authException = authException;
+        }
+
+        public boolean isHasAuthException() {
+            return hasAuthException;
+        }
+
+        public void setHasAuthException(boolean hasAuthException) {
+            this.hasAuthException = hasAuthException;
         }
 
     }
