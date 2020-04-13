@@ -18,14 +18,9 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.talend.commons.exception.ExceptionHandler;
-import org.talend.commons.runtime.model.emf.EmfHelper;
-import org.talend.core.model.properties.ConnectionItem;
+import org.talend.core.model.context.ContextLinkService;
 import org.talend.core.model.properties.Item;
-import org.talend.core.model.properties.JobletProcessItem;
-import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.repository.ERepositoryObjectType;
-import org.talend.designer.core.model.utils.emf.talendfile.ProcessType;
-import org.talend.repository.utils.ContextLinkService;
 
 public class CreateContextLinkMigrationTask extends UnifyPasswordEncryption4ItemMigrationTask {
 
@@ -48,15 +43,7 @@ public class CreateContextLinkMigrationTask extends UnifyPasswordEncryption4Item
     public ExecutionResult execute(Item item) {
         boolean modified = false;
         try {
-            if (item instanceof ProcessItem) {
-                ProcessItem processItem = (ProcessItem) item;
-                modified = updateProcessItem(item, processItem.getProcess());
-            } else if (item instanceof JobletProcessItem) {
-                JobletProcessItem jobletItem = (JobletProcessItem) item;
-                modified = updateProcessItem(item, jobletItem.getJobletProcess());
-            } else if (item instanceof ConnectionItem) {
-                modified = updateConnectionItem((ConnectionItem) item);
-            }
+            modified = ContextLinkService.getInstance().saveContextLink(item);
         } catch (Exception ex) {
             ExceptionHandler.process(ex);
             return ExecutionResult.FAILURE;
@@ -72,19 +59,6 @@ public class CreateContextLinkMigrationTask extends UnifyPasswordEncryption4Item
             }
         }
         return ExecutionResult.NOTHING_TO_DO;
-    }
-
-    private boolean updateProcessItem(Item item, ProcessType processType) throws Exception {
-        EmfHelper.visitChilds(processType);
-        return ContextLinkService.getInstance().saveContextLink(processType, item.getProperty().getId());
-    }
-
-    private boolean updateConnectionItem(ConnectionItem connectionItem) throws Exception {
-        if (connectionItem != null && connectionItem.getConnection() != null && connectionItem.getConnection().isContextMode()) {
-            return ContextLinkService.getInstance().saveContextLink(connectionItem.getConnection(),
-                    connectionItem.getProperty().getId());
-        }
-        return false;
     }
 
     private List<ERepositoryObjectType> getAllMetaDataType() {

@@ -41,7 +41,11 @@ import org.talend.core.ITDQPatternService;
 import org.talend.core.PluginChecker;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
+import org.talend.core.model.context.ContextLink;
+import org.talend.core.model.context.ContextLinkService;
+import org.talend.core.model.context.ContextParamLink;
 import org.talend.core.model.context.ContextUtils;
+import org.talend.core.model.context.ItemContextLink;
 import org.talend.core.model.context.JobContext;
 import org.talend.core.model.context.JobContextManager;
 import org.talend.core.model.context.JobContextParameter;
@@ -123,7 +127,6 @@ import org.talend.designer.core.model.components.EmfComponent;
 import org.talend.designer.core.model.process.AbstractProcessProvider;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextParameterType;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextType;
-import org.talend.designer.core.model.utils.emf.talendfile.impl.ContextTypeImpl;
 import org.talend.designer.core.ui.editor.nodes.Node;
 import org.talend.designer.core.ui.editor.update.UpdateCheckResult;
 import org.talend.designer.core.ui.editor.update.UpdateManagerUtils;
@@ -132,6 +135,7 @@ import org.talend.designer.core.utils.ConnectionUtil;
 import org.talend.designer.core.utils.SAPParametersUtils;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.repository.UpdateRepositoryUtils;
+
 
 /**
  * ggu class global comment. Detailled comment
@@ -402,14 +406,11 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
         final IContextManager contextManager = getProcess().getContextManager();
         // record the unsame
         ContextItemParamMap unsameMap = new ContextItemParamMap();
-        // rename
-        ContextItemParamMap renamedMap = new ContextItemParamMap();
         // built in
         ContextItemParamMap builtInMap = new ContextItemParamMap();
         Set<String> builtInSet = new HashSet<String>();
 
-        Map<ContextItem, Map<String, String>> repositoryRenamedMap = ((JobContextManager) contextManager)
-                .getRepositoryRenamedMap();
+        Map<ContextItem, Map<String, String>> repositoryRenamedMap = new HashMap<ContextItem, Map<String, String>>();
 
         ContextItemParamMap deleteParams = new ContextItemParamMap();
 
@@ -420,59 +421,104 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
         List<IProcess2> openedProcesses = UpdateManagerUtils.getOpenedProcess();
 
         Map<ContextItem, Set<String>> existedParams = new HashMap<ContextItem, Set<String>>();
+        ItemContextLink itemContextLink = null;
+        try {
+            itemContextLink = ContextLinkService.getInstance().loadContextLink(getProcess().getProperty().getId());
+        } catch (PersistenceException e) {
+            ExceptionHandler.process(e);
+        }
 
         for (IContext context : contextManager.getListContext()) {
+            ContextLink contextLink = null;
+            if (itemContextLink != null) {
+                contextLink = itemContextLink.getContextLinkByName(context.getName());
+            }
             for (IContextParameter param : context.getContextParameterList()) {
                 if (!param.isBuiltIn()) {
                     String source = param.getSource();
                     String paramName = param.getName();
                     refContextIds.add(source);
-                    // rename
-                    boolean renamed = false;
-                    for (ContextItem item : repositoryRenamedMap.keySet()) {
-                        if (source.equals(item.getProperty().getId())) {
-                            String newName = getRenamedVarName(paramName, repositoryRenamedMap.get(item));
-                            if (newName != null && !newName.equals(paramName)) {
-                                renamedMap.add(item, paramName);
-                                renamed = true;
-                            }
-                        }
+                    ContextParamLink paramLink = null;
+                    if (contextLink != null) {
+                        paramLink = contextLink.getParamLinkByName(paramName);
                     }
-                    if (!renamed) {
-                        // update
-                        final Item contextItem = ContextUtils.getRepositoryContextItemById(source);
+                    ContextItem contextItem = findContextItem(allContextItem, source);
                         boolean builtin = true;
-                        if (contextItem != null) {
-                            if (contextItem instanceof ContextItem) {
-                                final ContextType contextType = ContextUtils.getContextTypeByName((ContextItem) contextItem,
-                                        context.getName(), true);
-                                if (contextType != null) {
-                                    final ContextParameterType contextParameterType = ContextUtils
-                                            .getContextParameterTypeByName(contextType, paramName);
-                                    if (contextParameterType != null) {
+                        if (contextItem instanceof ContextItem) {
+                        final ContextType contextType = ContextUtils.getContextTypeByName((ContextItem) contextItem,
+                                context.getName(), true);
+                        if (paramLink != null && contextType != null) {// Compare use UUID
+                            ContextParameterType contextParameterType = ContextUtils.getContextParameterTypeByUUId(contextType,
+                                    paramLink.getId());
+                                if (contextParameterType != null) {
+                                    if (!StringUtils.equals(contextParameterType.getName(), paramName)) {
+                                    Map<String, String> renameMap = repositoryRenamedMap.get(contextItem);
+                                    if (renameMap == null) {
+                                        renameMap = new HashMap<String, String>();
+                                        repositoryRenamedMap.put(contextItem, renameMap);
+                                    }
+                                    renameMap.put(contextParameterType.getName(), paramName);
+                                    } else {
                                         ContextItem repositoryContext = (ContextItem) contextItem;
                                         if (existedParams.get(contextItem) == null) {
                                             existedParams.put(repositoryContext, new HashSet<String>());
                                         }
                                         existedParams.get(repositoryContext).add(paramName);
-                                        if (onlySimpleShow || !ContextUtils.samePropertiesForContextParameter(param,
-                                                contextParameterType)) {
+                                        if (onlySimpleShow
+                                                || !ContextUtils.samePropertiesForContextParameter(param, contextParameterType)) {
                                             unsameMap.add(contextItem, paramName);
                                         }
-                                        builtin = false;
-                                    } else {
-                                        // delete context variable
-                                        if (ContextUtils.isPropagateContextVariable()) {
-                                            deleteParams.add(contextItem, paramName);
-                                            builtin = false;
-                                        }
                                     }
-                                }
-                            } else if (contextItem instanceof JobletProcessItem) {
                                 builtin = false;
-                            } else if (contextItem instanceof ProcessItem) {
-                                builtin = false;
-                            }
+                                } else {
+                                    // delete context variable
+                                    if (ContextUtils.isPropagateContextVariable()) {
+                                        deleteParams.add(contextItem, paramName);
+                                        builtin = false;
+                                    }
+                                }  
+                        } else {
+                            // // rename
+                            // boolean renamed = false;
+                            // for (ContextItem item : repositoryRenamedMap.keySet()) {
+                            // if (source.equals(item.getProperty().getId())) {
+                            // String newName = getRenamedVarName(paramName, repositoryRenamedMap.get(item));
+                            // if (newName != null && !newName.equals(paramName)) {
+                            // renamedMap.add(item, paramName);
+                            // renamed = true;
+                            // }
+                            // }
+                            // }
+                            // if (!renamed) {
+                            // if (contextType != null) {
+                            // final ContextParameterType contextParameterType = ContextUtils
+                            // .getContextParameterTypeByName(contextType, paramName);
+                            // if (contextParameterType != null) {
+                            // ContextItem repositoryContext = (ContextItem) contextItem;
+                            // if (existedParams.get(contextItem) == null) {
+                            // existedParams.put(repositoryContext, new HashSet<String>());
+                            // }
+                            // existedParams.get(repositoryContext).add(paramName);
+                            // if (onlySimpleShow || !ContextUtils.samePropertiesForContextParameter(param,
+                            // contextParameterType)) {
+                            // unsameMap.add(contextItem, paramName);
+                            // }
+                            // builtin = false;
+                            // } else {
+                            // // delete context variable
+                            // if (ContextUtils.isPropagateContextVariable()) {
+                            // deleteParams.add(contextItem, paramName);
+                            // builtin = false;
+                            // }
+                            // }
+                            // }
+                            //
+                            // }
+                        }
+                        } else if (contextItem instanceof JobletProcessItem) {
+                            builtin = false;
+                        } else if (contextItem instanceof ProcessItem) {
+                            builtin = false;
                         }
                         if (builtin) {
                             // built in
@@ -482,7 +528,6 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                                 builtInSet.add(paramName);
                             }
                         }
-                    }
                 }
             }
         }
@@ -535,8 +580,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
             }
         }
         // rename
-        if (!renamedMap.isEmpty()) {
-            for (Item item : renamedMap.getContexts()) {
+        if (!repositoryRenamedMap.isEmpty()) {
+            for (Item item : repositoryRenamedMap.keySet()) {
                 Map<String, String> nameMap = repositoryRenamedMap.get(item);
                 if (nameMap != null && !nameMap.isEmpty()) {
                     for (String newName : nameMap.keySet()) {
@@ -569,8 +614,16 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                 }
             }
         }
-        repositoryRenamedMap.clear();
         return contextResults;
+    }
+
+    private ContextItem findContextItem(List<ContextItem> allContextItem, String source) {
+        for (ContextItem contextItem : allContextItem) {
+            if (StringUtils.equals(contextItem.getProperty().getId(), source)) {
+                return contextItem;
+            }
+        }
+        return null;
     }
 
     private void checkNewAddParameterForRef(Map<ContextItem, Set<String>> existedParams, final IContextManager contextManager,

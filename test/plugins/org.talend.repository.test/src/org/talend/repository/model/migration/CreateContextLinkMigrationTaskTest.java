@@ -28,7 +28,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.talend.commons.exception.PersistenceException;
+import org.talend.core.model.context.ContextLink;
+import org.talend.core.model.context.ContextLinkService;
+import org.talend.core.model.context.ContextParamLink;
 import org.talend.core.model.context.ContextUtils;
+import org.talend.core.model.context.ItemContextLink;
 import org.talend.core.model.metadata.builder.connection.Connection;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.model.properties.ContextItem;
@@ -49,10 +53,7 @@ import org.talend.repository.items.importexport.manager.ResourcesManager;
 import org.talend.repository.items.importexport.ui.managers.FileResourcesUnityManager;
 import org.talend.repository.items.importexport.ui.managers.ResourcesManagerFactory;
 import org.talend.repository.model.IProxyRepositoryFactory;
-import org.talend.repository.utils.ContextLink;
-import org.talend.repository.utils.ContextLinkService;
-import org.talend.repository.utils.ContextParamLink;
-import org.talend.repository.utils.ItemContextLink;
+
 
 public class CreateContextLinkMigrationTaskTest {
 
