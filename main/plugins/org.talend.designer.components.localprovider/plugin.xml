@@ -2854,10 +2854,10 @@
             uripath="platform:/plugin/org.talend.libraries.hadoop.hdp.2.2/lib/tezServer/stax-api-1.0.1.jar">
         </libraryNeeded>
         <libraryNeeded
-            id="xercesImpl-2.9.1.jar"
-            name="xercesImpl-2.9.1.jar" mvn_uri="mvn:xerces/xercesImpl/2.9.1"
+            id="xercesImpl-2.12.0.jar"
+            name="xercesImpl-2.12.0.jar" mvn_uri="mvn:xerces/xercesImpl/2.12.0"
             context="plugin:org.talend.libraries.hadoop.hdp.2.2"
-            uripath="platform:/plugin/org.talend.libraries.hadoop.hdp.2.2/lib/tezServer/xercesImpl-2.9.1.jar">
+            uripath="platform:/plugin/org.talend.libraries.hadoop.hdp.2.2/lib/tezServer/xercesImpl-2.12.0.jar">
         </libraryNeeded>
         <libraryNeeded
             id="xml-apis-1.3.04.jar"
@@ -7864,7 +7864,7 @@
             <library id="slf4j-log4j12-1.7.10.jar"/>
             <library id="snappy-java-1.0.4.1.jar"/>
             <library id="stax-api-1.0-2.jar"/>
-            <library id="xercesImpl-2.9.1.jar"/>
+            <library id="xercesImpl-2.12.0.jar"/>
             <library id="xml-apis-1.3.04.jar"/>
             <library id="xmlenc-0.52.jar"/>
             <library id="xz-1.0.jar"/>
@@ -8024,7 +8024,7 @@
                 id="stax-api-1.0.1.jar">
             </library>
             <library
-                id="xercesImpl-2.9.1.jar">
+                id="xercesImpl-2.12.0.jar">
             </library>
             <library
                 id="xml-apis-1.3.04.jar">
