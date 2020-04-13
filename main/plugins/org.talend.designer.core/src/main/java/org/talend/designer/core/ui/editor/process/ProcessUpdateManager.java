@@ -41,7 +41,6 @@ import org.talend.core.ITDQPatternService;
 import org.talend.core.PluginChecker;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
-import org.talend.core.model.context.ContextLink;
 import org.talend.core.model.context.ContextLinkService;
 import org.talend.core.model.context.ContextParamLink;
 import org.talend.core.model.context.ContextUtils;
@@ -135,7 +134,6 @@ import org.talend.designer.core.utils.ConnectionUtil;
 import org.talend.designer.core.utils.SAPParametersUtils;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.repository.UpdateRepositoryUtils;
-
 
 /**
  * ggu class global comment. Detailled comment
@@ -314,10 +312,11 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                     }
                 }
             } else {
-            	Boolean propagate = DesignerPlugin.getDefault().getPreferenceStore().getBoolean(TalendDesignerPrefConstants.PROPAGATE_CONTEXT);
-            	if(!propagate) {
-            		return contextResults;
-            	}
+                Boolean propagate = DesignerPlugin.getDefault().getPreferenceStore()
+                        .getBoolean(TalendDesignerPrefConstants.PROPAGATE_CONTEXT);
+                if (!propagate) {
+                    return contextResults;
+                }
                 // only handle added groups
                 Set<String> contextSourceChecked = new HashSet<String>();
                 Set<String> processContextGroups = new HashSet<String>();
@@ -429,105 +428,64 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
         }
 
         for (IContext context : contextManager.getListContext()) {
-            ContextLink contextLink = null;
-            if (itemContextLink != null) {
-                contextLink = itemContextLink.getContextLinkByName(context.getName());
-            }
             for (IContextParameter param : context.getContextParameterList()) {
                 if (!param.isBuiltIn()) {
                     String source = param.getSource();
                     String paramName = param.getName();
                     refContextIds.add(source);
                     ContextParamLink paramLink = null;
-                    if (contextLink != null) {
-                        paramLink = contextLink.getParamLinkByName(paramName);
+                    if (itemContextLink != null) {
+                        paramLink = itemContextLink.findContextParamLink(param.getSource(), context.getName(), param.getName());
                     }
                     ContextItem contextItem = findContextItem(allContextItem, source);
-                        boolean builtin = true;
-                        if (contextItem instanceof ContextItem) {
+                    boolean builtin = true;
+                    if (contextItem instanceof ContextItem) {
                         final ContextType contextType = ContextUtils.getContextTypeByName((ContextItem) contextItem,
                                 context.getName(), true);
                         if (paramLink != null && contextType != null) {// Compare use UUID
                             ContextParameterType contextParameterType = ContextUtils.getContextParameterTypeByUUId(contextType,
                                     paramLink.getId());
-                                if (contextParameterType != null) {
-                                    if (!StringUtils.equals(contextParameterType.getName(), paramName)) {
+                            if (contextParameterType != null) {
+                                if (!StringUtils.equals(contextParameterType.getName(), paramName)) {
                                     Map<String, String> renameMap = repositoryRenamedMap.get(contextItem);
                                     if (renameMap == null) {
                                         renameMap = new HashMap<String, String>();
                                         repositoryRenamedMap.put(contextItem, renameMap);
                                     }
                                     renameMap.put(contextParameterType.getName(), paramName);
-                                    } else {
-                                        ContextItem repositoryContext = (ContextItem) contextItem;
-                                        if (existedParams.get(contextItem) == null) {
-                                            existedParams.put(repositoryContext, new HashSet<String>());
-                                        }
-                                        existedParams.get(repositoryContext).add(paramName);
-                                        if (onlySimpleShow
-                                                || !ContextUtils.samePropertiesForContextParameter(param, contextParameterType)) {
-                                            unsameMap.add(contextItem, paramName);
-                                        }
-                                    }
-                                builtin = false;
                                 } else {
-                                    // delete context variable
-                                    if (ContextUtils.isPropagateContextVariable()) {
-                                        deleteParams.add(contextItem, paramName);
-                                        builtin = false;
+                                    ContextItem repositoryContext = (ContextItem) contextItem;
+                                    if (existedParams.get(contextItem) == null) {
+                                        existedParams.put(repositoryContext, new HashSet<String>());
                                     }
-                                }  
-                        } else {
-                            // // rename
-                            // boolean renamed = false;
-                            // for (ContextItem item : repositoryRenamedMap.keySet()) {
-                            // if (source.equals(item.getProperty().getId())) {
-                            // String newName = getRenamedVarName(paramName, repositoryRenamedMap.get(item));
-                            // if (newName != null && !newName.equals(paramName)) {
-                            // renamedMap.add(item, paramName);
-                            // renamed = true;
-                            // }
-                            // }
-                            // }
-                            // if (!renamed) {
-                            // if (contextType != null) {
-                            // final ContextParameterType contextParameterType = ContextUtils
-                            // .getContextParameterTypeByName(contextType, paramName);
-                            // if (contextParameterType != null) {
-                            // ContextItem repositoryContext = (ContextItem) contextItem;
-                            // if (existedParams.get(contextItem) == null) {
-                            // existedParams.put(repositoryContext, new HashSet<String>());
-                            // }
-                            // existedParams.get(repositoryContext).add(paramName);
-                            // if (onlySimpleShow || !ContextUtils.samePropertiesForContextParameter(param,
-                            // contextParameterType)) {
-                            // unsameMap.add(contextItem, paramName);
-                            // }
-                            // builtin = false;
-                            // } else {
-                            // // delete context variable
-                            // if (ContextUtils.isPropagateContextVariable()) {
-                            // deleteParams.add(contextItem, paramName);
-                            // builtin = false;
-                            // }
-                            // }
-                            // }
-                            //
-                            // }
-                        }
-                        } else if (contextItem instanceof JobletProcessItem) {
-                            builtin = false;
-                        } else if (contextItem instanceof ProcessItem) {
-                            builtin = false;
-                        }
-                        if (builtin) {
-                            // built in
-                            if (contextItem != null) {
-                                builtInMap.add(contextItem, paramName);
+                                    existedParams.get(repositoryContext).add(paramName);
+                                    if (onlySimpleShow
+                                            || !ContextUtils.samePropertiesForContextParameter(param, contextParameterType)) {
+                                        unsameMap.add(contextItem, paramName);
+                                    }
+                                }
+                                builtin = false;
                             } else {
-                                builtInSet.add(paramName);
+                                // delete context variable
+                                if (ContextUtils.isPropagateContextVariable()) {
+                                    deleteParams.add(contextItem, paramName);
+                                    builtin = false;
+                                }
                             }
                         }
+                    } else if (contextItem instanceof JobletProcessItem) {
+                        builtin = false;
+                    } else if (contextItem instanceof ProcessItem) {
+                        builtin = false;
+                    }
+                    if (builtin) {
+                        // built in
+                        if (contextItem != null) {
+                            builtInMap.add(contextItem, paramName);
+                        } else {
+                            builtInSet.add(paramName);
+                        }
+                    }
                 }
             }
         }
@@ -643,7 +601,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                     if (newParametersMap.get(contextItem) == null) {
                         newParametersMap.put(contextItem, new HashSet<String>());
                     }
-                    // To avoid the case: serval contexts contain more than one same name parameters, but we only can add
+                    // To avoid the case: serval contexts contain more than one same name parameters, but we only can
+                    // add
                     // one of them
                     IContext processContext = ((JobContextManager) contextManager).getDefaultContext();
                     if (processContext.getContextParameter(parameterType.getName()) == null) {
@@ -767,7 +726,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
     /*
      * check job settings parameters.
      */
-    private List<UpdateResult> checkMainParameters(EUpdateItemType type, boolean onlySimpleShow, Map<Object, Object> contextData) {
+    private List<UpdateResult> checkMainParameters(EUpdateItemType type, boolean onlySimpleShow,
+            Map<Object, Object> contextData) {
         List<UpdateResult> mainResults = new ArrayList<UpdateResult>();
         switch (type) {
         case JOB_PROPERTY_MAPREDUCE:
@@ -1112,7 +1072,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
      * check node parameters.
      */
     @SuppressWarnings("unchecked")
-    private List<UpdateResult> checkNodesParameters(EUpdateItemType type, boolean onlySimpleShow, Map<Object, Object> contextData) {
+    private List<UpdateResult> checkNodesParameters(EUpdateItemType type, boolean onlySimpleShow,
+            Map<Object, Object> contextData) {
         List<UpdateResult> nodesResults = new ArrayList<UpdateResult>();
         for (Node node : (List<Node>) getProcess().getGraphicalNodes()) {
             switch (type) {
@@ -1890,7 +1851,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
      * @return true if the data have been modified
      */
     @SuppressWarnings("unchecked")
-    private List<UpdateResult> checkNodePropertiesFromRepository(final Node node, boolean onlySimpleShow, Map<Object, Object> contextData) {
+    private List<UpdateResult> checkNodePropertiesFromRepository(final Node node, boolean onlySimpleShow,
+            Map<Object, Object> contextData) {
         if (node == null) {
             return Collections.emptyList();
         }
@@ -1926,7 +1888,7 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                         if (item != null && item instanceof ConnectionItem) {
                             source = UpdateRepositoryUtils.getRepositorySourceName(item);
                             repositoryConnection = ((ConnectionItem) item).getConnection();
-                            if(repositoryConnection != null && repositoryConnection.getId() == null){
+                            if (repositoryConnection != null && repositoryConnection.getId() == null) {
                                 repositoryConnection.setId(((ConnectionItem) item).getProperty().getId());
                             }
                         }
@@ -2570,7 +2532,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
             ConnectionContextHelper.checkContextMode(connItem);
             Connection connection = connItem.getConnection();
             if (connection.isContextMode()) {
-                Set<String> neededVars = ConnectionContextHelper.retrieveContextVar(parameters, connection, category, contextData);
+                Set<String> neededVars = ConnectionContextHelper.retrieveContextVar(parameters, connection, category,
+                        contextData);
                 if (neededVars != null && !neededVars.isEmpty()) {
                     ContextItem contextItem = ContextUtils.getContextItemById2(connection.getContextId());
                     EcoreUtil.resolveAll(contextItem);
@@ -2830,7 +2793,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
     }
 
     @Override
-    public List<UpdateResult> getUpdatesNeeded(IUpdateItemType itemType, boolean onlySimpleShow, Map<Object, Object> contextData) {
+    public List<UpdateResult> getUpdatesNeeded(IUpdateItemType itemType, boolean onlySimpleShow,
+            Map<Object, Object> contextData) {
         if (itemType == null) {
             return null;
         }
