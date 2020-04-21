@@ -75,8 +75,6 @@ imports="
 	globalMap.put("dbschema_<%=cid%>", <%=dbschema%>);
 
 	globalMap.put("db_<%=cid%>",  <%=dbname%>);
-
-	globalMap.put("conn_<%=cid%>",conn_<%=cid%>);
 	
 	globalMap.put("shareIdentitySetting_<%=cid%>",  <%=ElementParameterParser.getValue(node, "__SHARE_IDENTITY_SETTING__")%>);
 
